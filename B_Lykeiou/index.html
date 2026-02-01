@@ -1,132 +1,140 @@
 <!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
 <html lang="el">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Interactive PDF Reader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Library - Mobile Ready</title>
     <style>
-        /* Εδώ παραμένει όλο το CSS που είχες (Sidebar, Dark Mode, κλπ) */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Times New Roman', serif; background: #f5f5dc; color: #2c1810; line-height: 1.8; transition: background 0.3s; }
-        body.dark-mode { background: #1a1a1a; color: #e0e0e0; }
-        .sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: linear-gradient(180deg, #8b4513, #654321); padding: 20px; overflow-y: auto; z-index: 1000; transition: transform 0.4s; }
-        .sidebar.hidden { transform: translateX(-100%); }
-        .page-container { margin-left: 280px; padding: 20px; max-width: 900px; }
-        .raw-text { background: white; padding: 30px; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        body.dark-mode .raw-text { background: #2c2c2c; }
-        .image-placeholder img { max-width: 100%; display: none; border-radius: 8px; }
-        .video-container iframe { width: 100%; height: 450px; border-radius: 12px; display: none; }
-        .page-controls { position: fixed; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 999; }
-        button { padding: 10px; cursor: pointer; border-radius: 5px; border: none; background: #8b4513; color: white; }
+        /* CSS για εμφάνιση και Mobile Optimization */
+        :root { --primary-color: #8b4513; --bg-color: #f5f5dc; --text-color: #2c1810; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; line-height: 1.6; transition: 0.3s; }
+        body.dark-mode { --bg-color: #1a1a1a; --text-color: #e0e0e0; }
         
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; }
-            .page-container { margin-left: 0; padding-top: 80px; }
-        }
+        .sidebar { position: fixed; left: -280px; top: 0; width: 280px; height: 100vh; background: var(--primary-color); color: white; transition: 0.3s; z-index: 1000; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        .sidebar.active { left: 0; }
+        
+        .main-content { padding: 20px; transition: 0.3s; max-width: 800px; margin: auto; }
+        .page-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); min-height: 60vh; display: flex; flex-direction: column; animation: fadeIn 0.5s; }
+        body.dark-mode .page-card { background: #2c2c2c; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: auto; padding-top: 20px; }
+        button { background: var(--primary-color); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; min-width: 48px; min-height: 48px; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+
+        .menu-btn { position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--primary-color); }
+        .page-link { display: block; color: white; padding: 10px; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
-    <button id="toggleSidebar" onclick="toggleSidebar()">☰ Μενού</button>
 
-    <nav class="sidebar hidden" id="sidebar">
-        <h2 style="color: #f0e68c;">Περιεχόμενα</h2>
-        <div id="navigation-links">
-            </div>
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+    <nav class="sidebar" id="sidebar">
+        <h2>Περιεχόμενα</h2>
+        <div id="nav-links"></div>
     </nav>
 
-    <div class="page-controls">
-        <button onclick="toggleDarkMode()">🌓 Mode</button>
-    </div>
-
-    <div class="page-container">
-        <div class="raw-text">
+    <div class="main-content">
+        <div class="page-card">
             <h2 id="page-title">Φόρτωση...</h2>
-            <div id="page-content">Περιμένετε τη φόρτωση των δεδομένων...</div>
-
-            <div class="image-placeholder">
-                <img id="page-image" src="" alt="Εικόνα σελίδας">
+            <div id="page-content">Παρακαλώ περιμένετε...</div>
+            
+            <div id="media-content" style="margin-top:20px;">
+                <img id="page-img" style="max-width:100%; display:none; border-radius:10px;">
+                <iframe id="page-video" style="width:100%; height:300px; display:none; border-radius:10px;" frameborder="0" allowfullscreen></iframe>
             </div>
 
-            <div class="video-container" id="video-wrapper">
-                <iframe id="page-video" src="" frameborder="0" allowfullscreen></iframe>
+            <div class="nav-buttons">
+                <button id="prevBtn" onclick="changePage(-1)">⬅️ Προηγούμενη</button>
+                <button id="nextBtn" onclick="changePage(1)">Επόμενη ➡️</button>
             </div>
         </div>
     </div>
 
     <script>
-        let allData = null;
+        let pages = [];
+        let currentIndex = 0;
 
-        // 1. Η ΛΕΙΤΟΥΡΓΙΑ FETCH: Τραβάει τα δεδομένα από το JSON
+        // Φόρτωση δεδομένων
         async function loadData() {
             try {
                 const response = await fetch('data.json');
-                allData = await response.json();
-                buildNavigation();
-                displayPage(allData.pages[0].id); // Δείξε την πρώτη σελίδα
-            } catch (error) {
-                document.getElementById('page-content').textContent = "Σφάλμα: Δεν βρέθηκε το αρχείο data.json.";
+                const data = await response.json();
+                pages = data.pages;
+                buildMenu();
+                renderPage(0);
+            } catch (e) {
+                document.getElementById('page-content').innerHTML = "Σφάλμα φόρτωσης data.json. Βεβαιωθείτε ότι το αρχείο υπάρχει στον ίδιο φάκελο.";
             }
         }
 
-        // 2. Εμφάνιση περιεχομένου σελίδας
-        function displayPage(pageId) {
-            const page = allData.pages.find(p => p.id === pageId);
-            if (!page) return;
-
-            document.getElementById('page-title').textContent = page.title;
-            // Με το innerHTML υποστηρίζουμε και τυχόν αλλαγές γραμμής από το PDF
-            document.getElementById('page-content').innerHTML = page.content.replace(/\n/g, '<br>');
-
-            // Διαχείριση Εικόνας
-            const img = document.getElementById('page-image');
-            if (page.image) {
-                img.src = page.image;
-                img.style.display = 'block';
-            } else {
-                img.style.display = 'none';
-            }
-
-            // Διαχείριση Video
-            const video = document.getElementById('page-video');
-            if (page.videoId) {
-                video.src = `https://www.youtube.com/embed/${page.videoId}`;
-                video.style.display = 'block';
-            } else {
-                video.style.display = 'none';
-            }
-            
-            if (window.innerWidth <= 768) toggleSidebar(); // Κλείσε το μενού στα κινητά μετά την επιλογή
-        }
-
-        // 3. Αυτόματη δημιουργία μενού πλοήγησης
-        function buildNavigation() {
-            const nav = document.getElementById('navigation-links');
-            nav.innerHTML = '';
-            allData.pages.forEach(page => {
-                const link = document.createElement('a');
-                link.href = "#";
-                link.className = "page-link";
-                link.style.display = "block";
-                link.style.color = "white";
-                link.style.padding = "10px";
-                link.style.textDecoration = "none";
-                link.textContent = page.title;
-                link.onclick = () => displayPage(page.id);
-                nav.appendChild(link);
+        function buildMenu() {
+            const container = document.getElementById('nav-links');
+            pages.forEach((page, index) => {
+                const a = document.createElement('a');
+                a.className = 'page-link';
+                a.href = "#";
+                a.textContent = `Σελίδα ${index + 1}`; // Εδώ αλλάζει το όνομα στο μενού
+                a.onclick = () => { renderPage(index); toggleSidebar(); };
+                container.appendChild(a);
             });
         }
 
-        // Βασικές λειτουργίες UI
+        function renderPage(index) {
+            currentIndex = index;
+            const page = pages[index];
+            
+            // Εφέ ανανέωσης
+            const card = document.querySelector('.page-card');
+            card.style.animation = 'none';
+            card.offsetHeight; // trigger reflow
+            card.style.animation = null;
+
+            document.getElementById('page-title').textContent = `Σελίδα ${index + 1}`;
+            document.getElementById('page-content').innerHTML = page.content.replace(/\n/g, '<br>');
+            
+            // Media handling
+            const img = document.getElementById('page-img');
+            if(page.image) { img.src = page.image; img.style.display = 'block'; } else { img.style.display = 'none'; }
+            
+            const vid = document.getElementById('page-video');
+            if(page.videoId) { vid.src = `https://www.youtube.com/embed/${page.videoId}`; vid.style.display = 'block'; } else { vid.style.display = 'none'; }
+
+            // Buttons state
+            document.getElementById('prevBtn').disabled = (index === 0);
+            document.getElementById('nextBtn').disabled = (index === pages.length - 1);
+        }
+
+        function changePage(step) {
+            let newIndex = currentIndex + step;
+            if (newIndex >= 0 && newIndex < pages.length) {
+                renderPage(newIndex);
+                window.scrollTo(0,0);
+            }
+        }
+
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('hidden');
+            document.getElementById('sidebar').classList.toggle('active');
         }
 
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-        }
-
-        // Εκκίνηση
-        window.addEventListener('DOMContentLoaded', loadData);
+        window.onload = loadData;
     </script>
 </body>
+</html>
+    
+  </body>
+  
 </html>
